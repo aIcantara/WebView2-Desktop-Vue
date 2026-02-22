@@ -4,13 +4,13 @@ function CallEvent(name, args = []) {
 
 function CallResponseEvent(name, args = []) {
     return new Promise((resolve) => {
-        function handler(event) {
-            window.chrome.webview.removeEventListener("message", handler);
+        function Handler(event) {
+            window.chrome.webview.removeEventListener("message", Handler);
 
             resolve(event.data);
         }
 
-        window.chrome.webview.addEventListener("message", handler);
+        window.chrome.webview.addEventListener("message", Handler);
 
         CallEvent(name, args);
     });
