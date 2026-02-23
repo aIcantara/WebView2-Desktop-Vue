@@ -40,9 +40,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #endif
     options.resize = false;
 
-    UI::CApplication app("WebView2-Desktop-Vue", { 330, 380 }, options);
+    UI::CApplication application("WebView2-Desktop-Vue", { 330, 380 }, options);
 
-    app.SetMessageHandler(OnMessage);
+    application.SetMessageHandler(OnMessage);
 
-    return app.Run();
+    return application.Run();
 }
