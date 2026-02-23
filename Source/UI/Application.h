@@ -14,7 +14,7 @@
 
 namespace UI
 {
-    class CApplication
+    class CApplication final
     {
         using MessageHandlerFunction = std::function<void(CApplication*, ICoreWebView2*, const std::string&, const nlohmann::json&)>;
         
