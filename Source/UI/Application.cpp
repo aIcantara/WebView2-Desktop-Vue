@@ -1,5 +1,4 @@
 #include "Application.h"
-#include "Utils.h"
 
 #include <WebView2EnvironmentOptions.h>
 
@@ -7,13 +6,10 @@
 
 #include <cmrc/cmrc.hpp>
 
-#include <nlohmann/json.hpp>
-
 #include <Windows.h>
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <shlobj_core.h>
-#include <iostream>
 
 #define WM_WEBVIEW_REQUEST WM_USER + 0x01
 
@@ -110,6 +106,11 @@ int CApplication::Run()
     }
 
     return 1;
+}
+
+void CApplication::SetMessageHandler(MessageHandlerFunction handler)
+{
+    m_messageHandler = handler;
 }
 
 void CApplication::Exit()
@@ -270,37 +271,17 @@ bool CApplication::Initialize()
 
 HRESULT CApplication::OnMessage(ICoreWebView2* pWebView, ICoreWebView2WebMessageReceivedEventArgs* pArgs)
 {
-    wil::unique_cotaskmem_string raw;
-
-    pArgs->get_WebMessageAsJson(&raw);
-
-    nlohmann::json message = nlohmann::json::parse(Utils::ConvertToUTF8(raw.get()));
-    nlohmann::json args = message["args"];
-    std::string name = message["name"];
-
-    if (name == "Console:Attach")
+    if (m_messageHandler)
     {
-        if (AllocConsole())
-        {
-            FILE* file;
+        wil::unique_cotaskmem_string raw;
 
-            freopen_s(&file, "CONOUT$", "w", stdout);
-            freopen_s(&file, "CONOUT$", "w", stderr);
-            freopen_s(&file, "CONIN$", "r", stdin);
-        }
-    }
-    else if (name == "Console:Print")
-    {
-        std::cout << args.at(0).get<std::string>() << std::endl;
-    }
-    else if (name == "Math:Sum")
-    {
-        int a = args.at(0).get<int>();
-        int b = args.at(1).get<int>();
+        pArgs->get_WebMessageAsJson(&raw);
 
-        std::string result = std::to_string(a + b);
+        nlohmann::json message = nlohmann::json::parse(Utils::ConvertToUTF8(raw.get()));
+        nlohmann::json args = message["args"];
+        std::string name = message["name"];
 
-        pWebView->PostWebMessageAsString(Utils::ConvertToWideString(result).c_str());
+        m_messageHandler(this, pWebView, name, args);
     }
 
     return S_OK;
